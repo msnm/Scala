@@ -19,7 +19,8 @@ class EEGVisualisation extends Application
   override def start(primaryStage: Stage): Unit =
   {
     val eegView = new EEGView
-    val EEGPresenter = new EEGPresenter
+
+    val presenter = new EEGPresenter(eegView, "src/main/resources/data")
 
     // Set up & show stage
     val scene = new Scene(eegView, 1200, 1000)

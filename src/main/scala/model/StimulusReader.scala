@@ -1,5 +1,7 @@
 package model
 
+import java.io.File
+
 import scala.io.Source
 
 /**
@@ -11,6 +13,15 @@ object StimulusReader {
   //val stimuliTypes: Map[String, String] = readStimuliTypes("src/main/resources/data/Stimuli.txt")
   //val data = readStimuli("src/main/resources/data/EEG/Barbara_NounVerb.csv", stimuliTypes)
   //data.foreach(println)
+
+  def findCSVDataFiles(dir: String): List[File] = {
+    val d = new File(dir)
+    if (d.exists && d.isDirectory) {
+      d.listFiles.filter(_.isFile).filter(_.toString.endsWith(".csv")).toList
+    } else {
+      List[File]()
+    }
+  }
 
   def readStimuliTypes(fileName: String): Map[String, String] = {
     val lines = readFile(fileName)
