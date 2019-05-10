@@ -17,7 +17,7 @@ class EEGPresenter(eegView: EEGView, dataDir: String)
     v.toString.split(File.separator).last.split("_").head -> v
   }).toMap
 
-  var dataBuffer: java.util.Map[String, Vector[Stimulus]] = new util.HashMap[String, Vector[Stimulus]]() // This is the only state we keep for performance issues!
+  val dataBuffer: java.util.Map[String, Vector[Stimulus]] = new util.HashMap[String, Vector[Stimulus]]() // This is the only state we keep for performance issues!
 
   val stimuliTypes: Map[String, String] = StimulusReader.readStimuliTypes(dataDir + File.separator + "Stimuli.txt")
 
@@ -30,7 +30,6 @@ class EEGPresenter(eegView: EEGView, dataDir: String)
     eegView.dataSourceComboBox.setValue(eegView.dataSourceComboBox.getItems().get(0).toString)
     eegView.wordComboBox.setValue(eegView.wordComboBox.getItems().get(0).toString)
     updateChartView(eegView.dataSourceComboBox.getValue, eegView.wordComboBox.getValue)
-
   }
 
   def addEventHandlers(): Unit = {
