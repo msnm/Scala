@@ -1,18 +1,22 @@
 package presenter
 
+import java.awt.event.MouseEvent
 import java.io.File
 import java.util
 
 import javafx.collections.{FXCollections, ObservableList}
-import javafx.event.ActionEvent
+import javafx.event.{ActionEvent, Event, EventHandler}
 import javafx.scene.chart.XYChart
 import javafx.scene.chart.XYChart.Data
-import javafx.scene.control.ComboBox
+import javafx.scene.control.{CheckBox, ComboBox}
 import model.{Measurement, Stimulus, StimulusReader}
-import view.EEGView
+import view.{EEGView, SlidingWindowView}
 
-class EEGPresenter(eegView: EEGView, dataDir: String)
+class EEGPresenter(view: EEGView, dataDir: String)
 {
+
+  val slidingWindowView: SlidingWindowView = new SlidingWindowView
+
   val dataFiles: Map[String, File] = StimulusReader.findCSVDataFiles(dataDir + File.separator + "EEG").map(v => {
     v.toString.split(File.separator).last.split("_").head -> v
   }).toMap
@@ -27,46 +31,77 @@ class EEGPresenter(eegView: EEGView, dataDir: String)
   def initView(): Unit = {
     fillDataSourceComboBox()
     fillWordComboBox()
-    eegView.dataSourceComboBox.setValue(eegView.dataSourceComboBox.getItems().get(0).toString)
-    eegView.wordComboBox.setValue(eegView.wordComboBox.getItems().get(0).toString)
-    updateChartView(eegView.dataSourceComboBox.getValue, eegView.wordComboBox.getValue)
+    view.dataSourceComboBox.setValue(view.dataSourceComboBox.getItems().get(0).toString)
+    view.wordComboBox.setValue(view.wordComboBox.getItems().get(0).toString)
+    updateChartView(view.dataSourceComboBox.getValue, view.wordComboBox.getValue)
   }
 
   def addEventHandlers(): Unit = {
-    eegView.dataSourceComboBox.setOnAction((event: ActionEvent) => {
+    view.dataSourceComboBox.setOnAction((event: ActionEvent) => {
       val comboBox = event.getSource.asInstanceOf[ComboBox[String]]
       val person = comboBox.getValue
       println(s"Retrieving data from ${comboBox.getValue}")
-      updateChartView(person, eegView.wordComboBox.getValue)
+      updateChartView(person, view.wordComboBox.getValue)
     }
     )
 
-    eegView.wordComboBox.setOnAction((event: ActionEvent) => {
+    view.wordComboBox.setOnAction((event: ActionEvent) => {
       println(s"Retrieving word from ${event.getSource.asInstanceOf[ComboBox[String]].getValue}")
-      updateChartView(eegView.dataSourceComboBox.getValue, eegView.wordComboBox.getValue)
+      updateChartView(view.dataSourceComboBox.getValue, view.wordComboBox.getValue)
     })
+
+
+    view.startButton.setOnAction(
+      (event: ActionEvent)  =>  slidingWindowView.startAnimation(view)
+    )
+
+
+
   }
 
   def fillDataSourceComboBox() : Unit =  {
     val data: ObservableList[String] = FXCollections.observableList(scalaListToJavaList(dataFiles.keySet.toList, new util.ArrayList[String]()))
-    eegView.dataSourceComboBox.setItems(data)
+    view.dataSourceComboBox.setItems(data)
   }
 
   def fillWordComboBox() : Unit =  {
     val data: ObservableList[String] = FXCollections.observableList(scalaListToJavaList(stimuliTypes.keySet.toList, new util.ArrayList[String]()))
-    eegView.wordComboBox.setItems(data)
+    view.wordComboBox.setItems(data)
   }
 
   def updateChartView(person: String, word: String): Unit = {
     val stimuliOfPerson: Vector[Stimulus] = getDataFromBuffer(person)
     val stimulusData: Map[String, Vector[Measurement]] = stimuliOfPerson.find(_.word == word).get.measurements
-    eegView.lineChart.getData.clear()
+    view.lineChart.getData.clear()
+    view.legend.getChildren.clear()
+    view.contactPoints.clear()
     for ((k ,v) <- stimulusData) {
       val series: XYChart.Series[Number, Number] = new XYChart.Series[Number, Number]()
       series.setName(k)
+      val checkbox = new CheckBox
+      checkbox.setSelected(true)
+      view.contactPoints.add(checkbox)
       v.foreach( measure => series.getData.add(new Data[Number, Number](measure.timeStep, measure.value)))
-      eegView.lineChart.getData.add(series)
+      view.lineChart.getData.add(series)
       }
+    view.legend.getChildren.addAll(view.contactPoints)
+    legendEventHandlers()
+
+  }
+
+  def legendEventHandlers(): Unit = {
+    view.contactPoints.forEach(v =>
+      v.setOnAction((event: ActionEvent) => {
+        if(!v.isSelected) {
+          view.lineChart.getData.get(view.contactPoints.indexOf(v)).getNode.setVisible(false)
+        }
+        else {
+          view.lineChart.getData.get(view.contactPoints.indexOf(v)).getNode.setVisible(true)
+          v.setSelected(true)
+        }
+
+      })
+    )
 
   }
 

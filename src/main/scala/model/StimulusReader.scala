@@ -31,7 +31,7 @@ object StimulusReader {
     }).toMap
   }
 
-  def readStimuli(fileName: String, stimuliTypes: Map[String, String], delimiter: String = "\t", nrOfMeasurementsPerStimulus: Int = 512): Vector[Stimulus] = {
+    def readStimuli(fileName: String, stimuliTypes: Map[String, String], delimiter: String = "\t", nrOfMeasurementsPerStimulus: Int = 512): Vector[Stimulus] = {
     //1. Process the header line of the CSV file
     val lines: Vector[String] = readFile(fileName)
     val headers: Map[Int, String] = processHeader(processLine, lines.head, delimiter)
