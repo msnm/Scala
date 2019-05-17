@@ -47,16 +47,23 @@ class EEGView extends BorderPane
   val contactPoints: java.util.List[CheckBox] = new util.ArrayList[CheckBox]()
   val legend: HBox = new HBox()
 
-  //1.5. Create stackPane
-  val graphStackPane = new AnchorPane()
-  graphStackPane.getChildren.add(lineChart)
-  graphStackPane.setStyle("-fx-background-color: grey;")
+  //1.5 Create stackPane to put in the centre of the borderPane
+  val centrePane = new StackPane()
+
+  //1.6. Create an anchorPane to put the lineChart in
+  val chartPane = new AnchorPane()
+  chartPane.getChildren.add(lineChart)
+  chartPane.setStyle("-fx-background-color: blue;")
   AnchorPane.setTopAnchor(lineChart, 0.0)
   AnchorPane.setLeftAnchor(lineChart, 0.0)
   AnchorPane.setBottomAnchor(lineChart, 0.0)
   AnchorPane.setRightAnchor(lineChart, 0.0)
-  //1.5 Add comboboxes and graphStackPane to BorderPane
-  this.setCenter(graphStackPane)
+
+  centrePane.getChildren.addAll(chartPane)
+
+  //1.7 Add comboboxes and centerPane to BorderPane
+
+  this.setCenter(centrePane)
   this.setTop(hBox)
   this.setBottom(legend)
 

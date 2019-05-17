@@ -10,19 +10,18 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
 import javafx.util.Duration
 
-class SlidingWindowView  {
+class SlidingWindowView extends AnchorPane {
 
   val slidingWindow = new Rectangle
   slidingWindow.setFill(Color.DARKSLATEGRAY)
- // setStyle("-fx-background-color: grey;")
- // this.getChildren.addAll(slidingWindow)
+  //setStyle("-fx-background-color: grey;")
+  this.getChildren.addAll(slidingWindow)
 
 
 
   // Animation starts when the SPACE bar is pressed.
   def startAnimation(eegView: EEGView) : Unit =
   {
-    //this.setPrefWidth(eegView.lineChart.getWidth)
     val yAxis = eegView.yAxis
     val xAxis = eegView.xAxis
 
@@ -33,18 +32,17 @@ class SlidingWindowView  {
     val xMin = xAxis.getDisplayPosition(xAxis.getLowerBound)
     val xMax = xAxis.getDisplayPosition(xAxis.getUpperBound)
     val widthOfXaxis = xMax - xMin
-   // this.setMaxWidth(widthOfXaxis)
-  //  this.setMaxHeight(heightOfYaxis)
+    this.setMaxWidth(eegView.chartPane.getWidth)
+    this.setMaxHeight(eegView.chartPane.getHeight)
 
     slidingWindow.setHeight(heightOfYaxis)
     slidingWindow.setWidth(10)
 
-    eegView.graphStackPane.getChildren.add(slidingWindow)
-    AnchorPane.setLeftAnchor(slidingWindow, 0.0)
-//    AnchorPane.setBottomAnchor(slidingWindow,yMax)
+    AnchorPane.setLeftAnchor(slidingWindow, xMin)
+    AnchorPane.setBottomAnchor(slidingWindow, yMax)
  //   AnchorPane.setTopAnchor(slidingWindow, yMin)
-    AnchorPane.setRightAnchor(slidingWindow,0.0)
-
+  //  AnchorPane.setRightAnchor(slidingWindow,0.0)
+    eegView.centrePane.getChildren.addAll(this)
 
 
     // Using transition.
