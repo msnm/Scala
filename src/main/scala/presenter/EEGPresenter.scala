@@ -18,7 +18,7 @@ class EEGPresenter(view: EEGView, dataDir: String)
   val slidingWindowView: SlidingWindowView = new SlidingWindowView
 
   val dataFiles: Map[String, File] = StimulusReader.findCSVDataFiles(dataDir + File.separator + "EEG").map(v => {
-    v.toString.split(File.separator).last.split("_").head -> v
+    v.toString.split(File.separator.replace("\\","\\\\")).last.split("_").head -> v
   }).toMap
 
   val dataBuffer: java.util.Map[String, Vector[Stimulus]] = new util.HashMap[String, Vector[Stimulus]]() // This is the only state we keep for performance issues!
