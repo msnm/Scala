@@ -1,5 +1,7 @@
 package main
 
+import java.io.File
+
 import javafx.application.Application
 import javafx.scene.Scene
 import javafx.stage.{Screen, Stage}
@@ -20,7 +22,7 @@ class EEGVisualisation extends Application
   {
     val eegView =  new EEGView
 
-    val presenter = new EEGPresenter(eegView, "src/main/resources/data")
+    val presenter = new EEGPresenter(eegView, "src" + File.separator + "main"+ File.separator +  "resources" + File.separator + "data")
 
     // Set up & show stage
     val scene = new Scene(eegView, 1200, 1000)
