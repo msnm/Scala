@@ -1,11 +1,10 @@
 package presenter
 
-import java.awt.event.MouseEvent
 import java.io.File
 import java.util
 
 import javafx.collections.{FXCollections, ObservableList}
-import javafx.event.{ActionEvent, Event, EventHandler}
+import javafx.event.ActionEvent
 import javafx.scene.chart.XYChart
 import javafx.scene.chart.XYChart.Data
 import javafx.scene.control.{CheckBox, ComboBox}
@@ -31,8 +30,8 @@ class EEGPresenter(view: EEGView, dataDir: String)
   def initView(): Unit = {
     fillDataSourceComboBox()
     fillWordComboBox()
-    view.dataSourceComboBox.setValue(view.dataSourceComboBox.getItems().get(0).toString)
-    view.wordComboBox.setValue(view.wordComboBox.getItems().get(0).toString)
+    view.dataSourceComboBox.setValue(view.dataSourceComboBox.getItems.get(0).toString)
+    view.wordComboBox.setValue(view.wordComboBox.getItems.get(0).toString)
     updateChartView(view.dataSourceComboBox.getValue, view.wordComboBox.getValue)
   }
 
@@ -51,8 +50,9 @@ class EEGPresenter(view: EEGView, dataDir: String)
     })
 
 
-    view.startButton.setOnAction(
-      (event: ActionEvent)  =>  slidingWindowView.startAnimation(view)
+    view.startButton.setOnAction(   (event: ActionEvent)  => {
+      slidingWindowView.startAnimation(view, 50)
+    }
     )
 
 
@@ -72,20 +72,28 @@ class EEGPresenter(view: EEGView, dataDir: String)
   def updateChartView(person: String, word: String): Unit = {
     val stimuliOfPerson: Vector[Stimulus] = getDataFromBuffer(person)
     val stimulusData: Map[String, Vector[Measurement]] = stimuliOfPerson.find(_.word == word).get.measurements
+
     view.lineChart.getData.clear()
     view.legend.getChildren.clear()
     view.contactPoints.clear()
+
     for ((k ,v) <- stimulusData) {
       val series: XYChart.Series[Number, Number] = new XYChart.Series[Number, Number]()
       series.setName(k)
       val checkbox = new CheckBox
       checkbox.setSelected(true)
       view.contactPoints.add(checkbox)
-      v.foreach( measure => series.getData.add(new Data[Number, Number](measure.timeStep, measure.value)))
+      v.foreach( measure => {
+        val data = new Data[Number, Number](measure.timeStep, measure.value)
+        series.getData.add(data)
+
+      })
       view.lineChart.getData.add(series)
+      view.lineChart.getData.get(view.lineChart.getData.size() -1 ).getData.forEach(v => v.getNode.setVisible(false))
       }
     view.legend.getChildren.addAll(view.contactPoints)
     legendEventHandlers()
+
 
   }
 
@@ -102,7 +110,6 @@ class EEGPresenter(view: EEGView, dataDir: String)
 
       })
     )
-
   }
 
   def getDataFromBuffer(person: String): Vector[Stimulus] = {

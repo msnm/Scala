@@ -6,8 +6,8 @@ import java.util
 
 import javafx.geometry.{Insets, Pos}
 import javafx.scene.chart.{LineChart, NumberAxis}
-import javafx.scene.control.{Button, CheckBox, ComboBox}
-import javafx.scene.layout.{AnchorPane, BorderPane, HBox, StackPane}
+import javafx.scene.control.{Button, CheckBox, ComboBox, TextField}
+import javafx.scene.layout.{BorderPane, HBox, Pane, StackPane}
 
 object EEGView  {
   val backgroundColor = "-fx-background-color: white;"
@@ -15,7 +15,6 @@ object EEGView  {
 
 class EEGView extends BorderPane
 {
-
 
   //1. Initialisation (similar to constructor Java)
   //1.1 Set background of borderPane
@@ -25,54 +24,47 @@ class EEGView extends BorderPane
   val dataSourceComboBox: ComboBox[String] = new ComboBox[String]()
   val wordComboBox: ComboBox[String] = new ComboBox[String]()
   val startButton: Button = new Button("Start")
+  val pauseButton: Button = new Button("Pause")
+  val avgButton: Button = new Button("Avg")
+  val stdButton: Button = new Button("Std")
+  val slidingWindowSizeField: TextField = new TextField("50.0")
 
   //1.3 Stop comboboxes in horizontal pane
-  val hBox: HBox = new HBox()
-  hBox.getChildren.setAll(startButton, dataSourceComboBox, wordComboBox)
-
+  val menu: HBox = new HBox()
+  menu.getChildren.setAll(startButton, pauseButton,  dataSourceComboBox, wordComboBox, avgButton, stdButton, slidingWindowSizeField)
 
   //1.4 LineChart
   val xAxis = new NumberAxis
   val yAxis = new NumberAxis
 
-  xAxis.setAutoRanging(true)
-  xAxis.setTickUnit(1.0)
+
   yAxis.setForceZeroInRange(false)
   yAxis.setAutoRanging(true)
 
   val lineChart = new LineChart[Number, Number](xAxis, yAxis)
   lineChart.autosize()
-  lineChart.setCreateSymbols(false)
-  lineChart.setAnimated(false)
+  //lineChart.setCreateSymbols(false)
+  lineChart.setStyle(".default-color0.chart-symbol {\n    -fx-background-radius: 1px;\n}")
+
   val contactPoints: java.util.List[CheckBox] = new util.ArrayList[CheckBox]()
   val legend: HBox = new HBox()
 
   //1.5 Create stackPane to put in the centre of the borderPane
   val centrePane = new StackPane()
-
-  //1.6. Create an anchorPane to put the lineChart in
-  val chartPane = new AnchorPane()
-  chartPane.getChildren.add(lineChart)
-  chartPane.setStyle("-fx-background-color: blue;")
-  AnchorPane.setTopAnchor(lineChart, 0.0)
-  AnchorPane.setLeftAnchor(lineChart, 0.0)
-  AnchorPane.setBottomAnchor(lineChart, 0.0)
-  AnchorPane.setRightAnchor(lineChart, 0.0)
-
-  centrePane.getChildren.addAll(chartPane)
+  centrePane.getChildren.addAll(lineChart)
 
   //1.7 Add comboboxes and centerPane to BorderPane
 
   this.setCenter(centrePane)
-  this.setTop(hBox)
+  this.setTop(menu)
   this.setBottom(legend)
 
   //2 Set style  and position of other components
-  hBox.setStyle(EEGView.backgroundColor)
-  hBox.setAlignment(Pos.BASELINE_CENTER)
-  hBox.setSpacing(20)
+  menu.setStyle(EEGView.backgroundColor)
+  menu.setAlignment(Pos.BASELINE_CENTER)
+  menu.setSpacing(20)
   val insets = new Insets(20, 10, 10, 10)
-  hBox.setPadding(insets)
+  menu.setPadding(insets)
   legend.setAlignment(Pos.TOP_CENTER)
   legend.setPadding(insets)
   legend.setSpacing(20)
