@@ -8,7 +8,7 @@ import javafx.event.ActionEvent
 import javafx.scene.chart.XYChart
 import javafx.scene.chart.XYChart.Data
 import javafx.scene.control.{CheckBox, ComboBox}
-import model.{Measurement, Stimulus, StimulusReader}
+import model.{DataAnalyzer, Measurement, Stimulus, StimulusReader}
 import view.{EEGView, SlidingWindowView}
 
 class EEGPresenter(view: EEGView, dataDir: String)
@@ -51,7 +51,11 @@ class EEGPresenter(view: EEGView, dataDir: String)
 
 
     view.startButton.setOnAction(   (event: ActionEvent)  => {
-      slidingWindowView.startAnimation(view, 50)
+      val data: Map[String, Vector[Measurement]] = getStimulusData(view.dataSourceComboBox.getValue, view.wordComboBox.getValue)
+      val slidingWindowSize = view.slidingWindowSizeField.getText.toInt
+      val nrOfDataPoints = data.head._2.size
+      val interestingWindows: Map[String, Vector[Boolean]] = DataAnalyzer.movingAverage(data, slidingWindowSize  , 1)
+      slidingWindowView.startAnimation(view, interestingWindows, slidingWindowSize, nrOfDataPoints)
     }
     )
 
@@ -70,8 +74,7 @@ class EEGPresenter(view: EEGView, dataDir: String)
   }
 
   def updateChartView(person: String, word: String): Unit = {
-    val stimuliOfPerson: Vector[Stimulus] = getDataFromBuffer(person)
-    val stimulusData: Map[String, Vector[Measurement]] = stimuliOfPerson.find(_.word == word).get.measurements
+    val stimulusData: Map[String, Vector[Measurement]] = getStimulusData(person, word)
 
     view.lineChart.getData.clear()
     view.legend.getChildren.clear()
@@ -95,6 +98,12 @@ class EEGPresenter(view: EEGView, dataDir: String)
     legendEventHandlers()
 
 
+  }
+
+  private def getStimulusData(person: String, word: String) : Map[String, Vector[Measurement]] = {
+    val stimuliOfPerson: Vector[Stimulus] = getDataFromBuffer(person)
+    val stimulusData: Map[String, Vector[Measurement]] = stimuliOfPerson.find(_.word == word).get.measurements
+    stimulusData
   }
 
   def legendEventHandlers(): Unit = {
