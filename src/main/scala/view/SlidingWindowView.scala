@@ -14,15 +14,13 @@ class SlidingWindowView {
   slidingWindow.setOpacity(0.7)
 
 
-  def startAnimation(eegView: EEGView, interestingWindows: Map[String, Vector[Boolean]], slidingWindowSize: Int, nrOfDataPoints: Int) : Unit =
+
+
+  def startAnimation(eegView: EEGView, interestingWindows: Vector[Boolean], slidingWindowSize: Int, nrOfDataPoints: Int): SequentialTransition  =
   {
 
-    // 1. Aggregate the interestingWindows. In this POC an interesting window is present when at least one value is true across all 14 contactPoints.
-    val interestingAreas: List[Boolean] = interestingWindows.values.toList.transpose.map(_.exists(_ == true))
-
+    // 1. Aggregate the interestingWindows. OBSOLETE
     interestingWindows.foreach(println)
-    println("InterestingAreas aggregated:")
-    println(interestingAreas)
 
     // 2. Retrieving positions of axis and origin
     val yAxis = eegView.yAxis
@@ -46,7 +44,7 @@ class SlidingWindowView {
 
     // 4. Determining the width of the rectangle and the stepwidth
     // 4.1 The number of step is equal to the size of the list of interestingAreas, thus stepWidth is:
-    val stepWidth: Double = widthOfData / interestingAreas.size //width of the steps
+    val stepWidth: Double = widthOfData / interestingWindows.size //width of the steps
 
     // 4.2 If the windowSize is 5 steps then the width of the datapoints along the x-axis divided by the total nr of datapoints multiplied by the number of datapoints in a sliding window
     val width = (widthOfData / nrOfDataPoints) * slidingWindowSize
@@ -65,7 +63,7 @@ class SlidingWindowView {
     val startingPointX = firstValueMinx
     val startingPointY = yMinInParent + (heightInLocal - yAxis.getHeight)
 
-    for(i <- interestingAreas.indices)  {
+    for(i <- interestingWindows.indices)  {
       val transition: TranslateTransition = new TranslateTransition()
       transition.setNode(slidingWindow)
       transition.setDuration(Duration.millis(100))
@@ -77,18 +75,22 @@ class SlidingWindowView {
       }
 
       // When an interestingArea(i) == true then freeze rectangle
-      if(interestingAreas(i)) {
+      if(interestingWindows(i)) {
           transition.setOnFinished( event => {
             println("Important Area")
             println(slidingWindow.getTranslateX + " " + slidingWindow.getTranslateY)
             val area = new Rectangle()
-            area.setWidth(width)
+            area.setWidth(stepWidth)
             area.setHeight(height)
-            area.setX(slidingWindow.getTranslateX)
-            area.setY(slidingWindow.getTranslateY)
-            area.setFill(Color.LIGHTGREEN)
-            area.setOpacity(0.5)
+            area.setFill(Color.LIGHTBLUE)
+            area.setOpacity(0.9)
+
+            area.setManaged(false)
+            area.setX(slidingWindow.getTranslateX - stepWidth)
+            area.setY(startingPointY)
+            StackPane.setAlignment(area, Pos.TOP_LEFT)
             eegView.centrePane.getChildren.add(area)
+
           })
         }
 
@@ -96,6 +98,9 @@ class SlidingWindowView {
       sequentialTransition.getChildren.add(transition)
 
     }
+
+    sequentialTransition.setOnFinished(event => eegView.pauseButton.setText("Pause"))
     sequentialTransition.play()
+    sequentialTransition
   }
 }

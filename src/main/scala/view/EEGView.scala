@@ -27,11 +27,12 @@ class EEGView extends BorderPane
   val pauseButton: Button = new Button("Pause")
   val avgButton: Button = new Button("Avg")
   val stdButton: Button = new Button("Std")
-  val slidingWindowSizeField: TextField = new TextField("50")
+  val slidingWindowSizeField: TextField = new TextField("10")
+  val range: TextField = new TextField("4")
 
   //1.3 Stop comboboxes in horizontal pane
   val menu: HBox = new HBox()
-  menu.getChildren.setAll(startButton, pauseButton,  dataSourceComboBox, wordComboBox, avgButton, stdButton, slidingWindowSizeField)
+  menu.getChildren.setAll(startButton, pauseButton,  dataSourceComboBox, wordComboBox, avgButton, stdButton, slidingWindowSizeField, range)
 
   //1.4 LineChart
   val xAxis = new NumberAxis

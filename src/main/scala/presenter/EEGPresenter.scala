@@ -8,35 +8,46 @@ import javafx.event.ActionEvent
 import javafx.scene.chart.XYChart
 import javafx.scene.chart.XYChart.Data
 import javafx.scene.control.{CheckBox, ComboBox}
+import javafx.scene.shape.Rectangle
 import model.{DataAnalyzer, Measurement, Stimulus, StimulusReader}
 import view.{EEGView, SlidingWindowView}
 
 class EEGPresenter(view: EEGView, dataDir: String)
 {
 
+  // Initialising view + looking up datafiles
   val slidingWindowView: SlidingWindowView = new SlidingWindowView
 
+  // Extracting the personname from the filename
   val dataFiles: Map[String, File] = StimulusReader.findCSVDataFiles(dataDir + File.separator + "EEG").map(v => {
     v.toString.split(File.separator.replace("\\","\\\\")).last.split("_").head -> v
   }).toMap
 
-  val dataBuffer: java.util.Map[String, Vector[Stimulus]] = new util.HashMap[String, Vector[Stimulus]]() // This is the only state we keep for performance issues!
-
+  // This is the only state we keep for performance issues! Using mutuable map!
+  val dataBuffer: java.util.Map[String, Vector[Stimulus]] = new util.HashMap[String, Vector[Stimulus]]()
   val stimuliTypes: Map[String, String] = StimulusReader.readStimuliTypes(dataDir + File.separator + "Stimuli.txt")
 
+  // Initialising the startView + registering eventHandlers
   initView()
   addEventHandlers()
 
   def initView(): Unit = {
+    // Fill comboboxes
     fillDataSourceComboBox()
     fillWordComboBox()
+    view.avgButton.arm()
+    // Set a default option for the comboboxes
     view.dataSourceComboBox.setValue(view.dataSourceComboBox.getItems.get(0).toString)
     view.wordComboBox.setValue(view.wordComboBox.getItems.get(0).toString)
+
+    // Display the series for the defaults
     updateChartView(view.dataSourceComboBox.getValue, view.wordComboBox.getValue)
   }
 
   def addEventHandlers(): Unit = {
+
     view.dataSourceComboBox.setOnAction((event: ActionEvent) => {
+      // Changing the datasource should result in new chartview
       val comboBox = event.getSource.asInstanceOf[ComboBox[String]]
       val person = comboBox.getValue
       println(s"Retrieving data from ${comboBox.getValue}")
@@ -45,17 +56,39 @@ class EEGPresenter(view: EEGView, dataDir: String)
     )
 
     view.wordComboBox.setOnAction((event: ActionEvent) => {
+      // Changing the word should result in new chartview
       println(s"Retrieving word from ${event.getSource.asInstanceOf[ComboBox[String]].getValue}")
       updateChartView(view.dataSourceComboBox.getValue, view.wordComboBox.getValue)
     })
 
+    view.avgButton.setOnAction( (event: ActionEvent) => view.stdButton.disarm())
+    view.stdButton.setOnAction( (event: ActionEvent) => view.avgButton.disarm())
 
     view.startButton.setOnAction(   (event: ActionEvent)  => {
+
+      //1. First clear all the rectangles on the view if they exist
+      view.centrePane.getChildren.removeAll(view.centrePane.getChildren.filtered(_.isInstanceOf[Rectangle]))
+
+      //2. Calculate the interestingAreas in model and pass to view
       val data: Map[String, Vector[Measurement]] = getStimulusData(view.dataSourceComboBox.getValue, view.wordComboBox.getValue)
       val slidingWindowSize = view.slidingWindowSizeField.getText.toInt
+      val range = view.range.getText.toInt
       val nrOfDataPoints = data.head._2.size
-      val interestingWindows: Map[String, Vector[Boolean]] = DataAnalyzer.movingAverage(data, slidingWindowSize  , 1)
-      slidingWindowView.startAnimation(view, interestingWindows, slidingWindowSize, nrOfDataPoints)
+
+      val interestingWindows: Vector[Boolean] = if (view.avgButton.isArmed) DataAnalyzer.movingAverageAllContactPoints(data, slidingWindowSize, range) else DataAnalyzer.varianceAllContactPoints(data, slidingWindowSize, range)
+      val transition = slidingWindowView.startAnimation(view, interestingWindows, slidingWindowSize, nrOfDataPoints)
+
+      view.pauseButton.setOnAction( (event: ActionEvent) => {
+        if(view.pauseButton.getText == "Pause")  {
+          transition.pause()
+          view.pauseButton.setText("Resume")
+        }
+        else {
+          transition.play()
+          view.pauseButton.setText("Pause")
+        }
+
+      })
     }
     )
 
