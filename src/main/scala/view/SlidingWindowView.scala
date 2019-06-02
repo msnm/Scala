@@ -20,7 +20,7 @@ class SlidingWindowView {
   {
 
     // 1. Aggregate the interestingWindows. OBSOLETE
-    interestingWindows.foreach(println)
+  //  interestingWindows.foreach(println)
 
     // 2. Retrieving positions of axis and origin
     val yAxis = eegView.yAxis
@@ -77,8 +77,8 @@ class SlidingWindowView {
       // When an interestingArea(i) == true then freeze rectangle
       if(interestingWindows(i)) {
           transition.setOnFinished( event => {
-            println("Important Area")
-            println(slidingWindow.getTranslateX + " " + slidingWindow.getTranslateY)
+        //    println("Important Area")
+        //    println(slidingWindow.getTranslateX + " " + slidingWindow.getTranslateY)
             val area = new Rectangle()
             area.setWidth(stepWidth)
             area.setHeight(height)

@@ -3,10 +3,11 @@ package model
 object DataAnalyzer {
 
   def movingAverageAllContactPoints(stimuli:  Map[String, Vector[Measurement]], window: Int, range: Int): Vector[Boolean] = {
+    println("MovingAvgAllContactPoints")
     val mvAvg: Vector[Double] = movingAveragePerContactPoint(stimuli, window).values.transpose.map(_.sum).map(_ / stimuli.size).toVector
     val avgInRange: Double = averageInRangePerContactPoint(stimuli, range).values.transpose.map(_.sum).map(_ / stimuli.size).head
-    println(mvAvg)
-    println(avgInRange)
+   println(mvAvg)
+   println(avgInRange)
     mvAvg.map(v => v > avgInRange)
   }
 
@@ -49,6 +50,7 @@ object DataAnalyzer {
   }
 
   def varianceAllContactPoints(stimuli:  Map[String, Vector[Measurement]], window: Int, range: Int): Vector[Boolean] = {
+    println("VarianceAllContactPoints")
     val mvStdv: Vector[Double] = varianceAveragePerContactPoint(stimuli, window).values.transpose.map(v => variance(v.toVector)).toVector
     val stdvInRange: Double = varianceInRangePerContactPoint(stimuli, range).values.transpose.map(v=> variance(v.toVector)).head
 
