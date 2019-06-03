@@ -3,6 +3,7 @@ package model
 import java.io.File
 
 import scala.io.Source
+import org.apache.spark._
 
 /**
   * 1. Reads Stimulus file containing the dataset of verb/noun stimulus
